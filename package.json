@@ -1,0 +1,24 @@
+{
+  "name": "@bit-js/quark",
+  "version": "0.0.1",
+  "author": "aquapi",
+  "license": "MIT",
+  "keywords": ["edge", "fast", "minimal"],
+  "type": "module",
+  "description": "A fast framework for the Edge",
+  "main": "./lib/index.js",
+  "types": "./lib/index.d.ts",
+  "exports": {
+    ".": "./lib/index.js",
+    "./*": "./lib/*.js"
+  },
+  "scripts": {
+    "build:test": "bun build.ts && bun test"
+  },
+  "dependencies": {
+    "@bit-js/blitz": "^1.3.3"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20240512.0"
+  }
+}
