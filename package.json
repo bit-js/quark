@@ -1,6 +1,6 @@
 {
   "name": "@bit-js/quark",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "author": "aquapi",
   "license": "MIT",
   "keywords": ["edge", "fast", "minimal"],

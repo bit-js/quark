@@ -3,7 +3,7 @@ import type { Promisify, RequiredKeys, AwaitedReturn } from '../../utils/types';
 import type { RequestBaseProps, RequestProps } from './request';
 
 type InferReturn<T extends BaseHandler[]> = T extends [infer Current extends BaseHandler, ... infer Rest extends BaseHandler[]]
-    ? Extract<AwaitedReturn<ReturnType<Current>>, GenericResponse> | InferReturn<Rest>
+    ? AwaitedReturn<Current> | InferReturn<Rest>
     : never;
 
 // Infer a single route

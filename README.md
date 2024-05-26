@@ -15,10 +15,24 @@ An example `Hello world` app:
 import { Quark } from '@bit-js/quark';
 
 const app = new Quark()
+    .use((ctx) => {
+        ctx.headers['Content-Type'] = 'text/plain';
+        return ctx.next();
+    })
     .get('/', (ctx) => ctx.body('Hello world'));
 
 export default app;
 ```
+
+To access `ExecutionContext` and `Env`:
+```ts
+(ctx) => {
+    // Environment variables
+    ctx.env;
+
+    // Execution context
+    ctx.execution;
+}
 
 To overwrite `Env` types:
 ```ts
@@ -29,4 +43,41 @@ declare global {
         myKVNamespace: KVNamespace;
     }
 }
+```
+
+### Others
+Install `@bit-js/quark`:
+```ts
+npm i @bit-js/quark
+```
+
+An example `Hello world` app:
+```ts
+import { Quark } from '@bit-js/quark';
+
+const app = new Quark()
+    .use((ctx) => {
+        ctx.headers['Content-Type'] = 'text/plain';
+        return ctx.next();
+    })
+    .get('/', (ctx) => ctx.body('Hello world'));
+
+export default app;
+```
+
+### Client
+Export your app type: 
+```ts
+export type TApp = typeof app;
+```
+
+Usage on client:
+```ts
+import type { TApp } from '../server';
+import { client } from '@bit-js/quark';
+
+const app = client<TApp>('http://localhost:3000');
+
+const res = await app.get('/');
+await res.text(); // Hello world
 ```
