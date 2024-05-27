@@ -1,9 +1,13 @@
 {
   "name": "@bit-js/quark",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "author": "aquapi",
   "license": "MIT",
-  "keywords": ["edge", "fast", "minimal"],
+  "keywords": [
+    "edge",
+    "fast",
+    "minimal"
+  ],
   "type": "module",
   "description": "A fast framework for the Edge",
   "main": "./lib/index.js",

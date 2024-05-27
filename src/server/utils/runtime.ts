@@ -1,1 +1,1 @@
-export const isCloudflare = globalThis.navigator?.userAgent === 'Cloudflare-Workers'
+export const isCloudflare = globalThis.navigator?.userAgent === 'Cloudflare-Workers';

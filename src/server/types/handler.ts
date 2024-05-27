@@ -12,12 +12,10 @@ export class Context<Params> implements CommonResponseInit {
     readonly params!: Params;
 
     readonly req: Request;
-    readonly env!: Env;
-    readonly execution!: ExecutionContext;
 
     handlerIdx: number;
     handlers!: BaseHandler[];
-    
+
     /**
      * Parse the request
      */
@@ -73,9 +71,14 @@ export class Context<Params> implements CommonResponseInit {
      * Call the next middleware
      */
     next() {
-        return this.handlers[++this.handlerIdx](this);
+        return this.handlers[++this.handlerIdx](this) as never;
     }
 };
+
+export interface Context<Params> {
+    readonly env: Env;
+    readonly execution: ExecutionContext;
+}
 
 export type BaseContext = Context<any>;
 

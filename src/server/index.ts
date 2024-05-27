@@ -7,7 +7,7 @@ export type RoutesRecord = Route[];
 
 interface Register<Method extends string, Routes extends RoutesRecord> {
     <
-        Path extends string, 
+        Path extends string,
         Handlers extends BaseHandler[]
     >(path: Path, ...handlers: Handlers): Quark<[...Routes, [Method, Path, Handlers]]>
 }
@@ -16,7 +16,7 @@ type HandlerRegisters<T extends RoutesRecord> = {
 }
 
 declare global {
-    interface Env {}
+    interface Env { }
 }
 
 export class Quark<Routes extends RoutesRecord = []> {
@@ -54,7 +54,7 @@ export class Quark<Routes extends RoutesRecord = []> {
 
             if (method === null)
                 router.handle(route[1], route[2]);
-            else 
+            else
                 router.on(method, route[1], route[2]);
         }
 
@@ -81,26 +81,29 @@ export class Quark<Routes extends RoutesRecord = []> {
      */
     route(base: string, { routes }: BaseQuark) {
         const baseLen = base.length;
-        if (baseLen === 1) {  
+
+        if (baseLen === 1) {
             for (let i = 0, { length } = routes; i < length; ++i) {
                 const route = routes[i];
                 this.handle(route[0], route[1], ...route[2]);
             }
-        } else {
-            if (base.charCodeAt(baseLen - 1) === 47)
-                throw new Error('Base cannot end with a slash, instead recieved: ' + base);
 
-            for (let i = 0, { length } = routes; i < length; ++i) {
-                const route = routes[i];
-                const path = route[1];
+            return this;
+        }
 
-                this.handle(route[0], path.length === 1 ? base : base + path, ...route[2]);
-            }
+        if (base.charCodeAt(baseLen - 1) === 47)
+            throw new Error('Base cannot end with a slash, instead recieved: ' + base);
+
+        for (let i = 0, { length } = routes; i < length; ++i) {
+            const route = routes[i];
+            const path = route[1];
+
+            this.handle(route[0], path.length === 1 ? base : base + path, ...route[2]);
         }
 
         return this;
     }
- 
+
     /** @internal */
     // @ts-ignore
     get(...args: any[]): any {
@@ -145,7 +148,7 @@ export class Quark<Routes extends RoutesRecord = []> {
     }
 }
 
-export interface Quark<Routes extends RoutesRecord> extends HandlerRegisters<Routes> {};
+export interface Quark<Routes extends RoutesRecord> extends HandlerRegisters<Routes> { };
 export type BaseQuark = Quark<RoutesRecord>;
 
 export * from './utils/response';

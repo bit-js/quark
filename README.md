@@ -46,6 +46,21 @@ declare global {
 }
 ```
 
+### Deno
+An example `Hello world` app:
+```ts
+import { Quark } from 'npm:@bit-js/quark';
+
+const app = new Quark()
+    .use((ctx) => {
+        ctx.headers['Content-Type'] = 'text/plain';
+        return ctx.next();
+    })
+    .get('/', (ctx) => ctx.body('Hello world'));
+
+export default app;
+```
+
 ### Others
 Install `@bit-js/quark`:
 ```ts
