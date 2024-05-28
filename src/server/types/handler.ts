@@ -82,5 +82,5 @@ export interface Context<Params> {
 
 export type BaseContext = Context<any>;
 
-export type Handler<Path extends string> = (c: Context<Params<Path>>) => any;
-export type BaseHandler = (c: BaseContext) => any;
+export type Handler<Path extends string, Set> = (c: Context<Params<Path>> & Set) => any;
+export type BaseHandler<Set = any> = (c: BaseContext & Set) => any;

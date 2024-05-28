@@ -1,26 +1,28 @@
+import { AsyncFunction } from '../utils/defaultOptions';
 import type { RequestMethod } from '../utils/methods';
-import type { BaseHandler } from './types/handler';
+import type { AwaitedReturn } from '../utils/types';
+import type { BaseHandler, Handler } from './types/handler';
 import Router from './utils/router';
 
 export type Route = [method: string, path: string, handlers: BaseHandler[]];
 export type RoutesRecord = Route[];
 
-interface Register<Method extends string, Routes extends RoutesRecord> {
+interface Register<Method extends string, Routes extends RoutesRecord, State> {
     <
         Path extends string,
-        Handlers extends BaseHandler[]
+        Handlers extends Handler<Path, State>[]
     >(path: Path, ...handlers: Handlers): Quark<[...Routes, [Method, Path, Handlers]]>
 }
-type HandlerRegisters<T extends RoutesRecord> = {
-    [Method in RequestMethod | 'any']: Register<Method, T>;
+type HandlerRegisters<T extends RoutesRecord, State> = {
+    [Method in RequestMethod | 'any']: Register<Method, T, State>;
 }
 
 declare global {
     interface Env { }
 }
 
-export class Quark<Routes extends RoutesRecord = []> {
-    readonly middlewares: BaseHandler[];
+export class Quark<Routes extends RoutesRecord = [], State = {}> {
+    readonly middlewares: BaseHandler<State>[];
     readonly routes: Routes;
 
     /**
@@ -34,9 +36,30 @@ export class Quark<Routes extends RoutesRecord = []> {
     /**
      * Register a middleware
      */
-    use(f: BaseHandler) {
+    use(f: BaseHandler<State>) {
         this.middlewares.push(f);
         return this;
+    }
+
+    /**
+     * Set props
+     */
+    set<Name extends string, Fn extends BaseHandler<State>>(name: Name, fn: Fn): Quark<Routes, State & { [K in Name]: AwaitedReturn<Fn> }> {
+        // @ts-ignore
+        return this.use(fn.constructor === AsyncFunction
+            ? (fn.length === 0
+                // @ts-ignore
+                ? async (ctx) => { ctx[name] = await fn(); }
+                // @ts-ignore
+                : async (ctx) => { ctx[name] = await fn(ctx); }
+            )
+            : (fn.length === 0
+                // @ts-ignore
+                ? (ctx) => { ctx[name] = fn(); }
+                // @ts-ignore
+                : (ctx) => { ctx[name] = fn(ctx); }
+            )
+        );
     }
 
     #fetch: any;
@@ -71,7 +94,7 @@ export class Quark<Routes extends RoutesRecord = []> {
     /**
      * Register handlers
      */
-    handle(method: string | null, path: string, ...handlers: BaseHandler[]) {
+    handle(method: string | null, path: string, ...handlers: BaseHandler<State>[]) {
         this.routes.push([method!, path, [...this.middlewares, ...handlers]]);
         return this;
     }
@@ -148,7 +171,7 @@ export class Quark<Routes extends RoutesRecord = []> {
     }
 }
 
-export interface Quark<Routes extends RoutesRecord> extends HandlerRegisters<Routes> { };
+export interface Quark<Routes extends RoutesRecord, State> extends HandlerRegisters<Routes, State> { };
 export type BaseQuark = Quark<RoutesRecord>;
 
 export * from './utils/response';
