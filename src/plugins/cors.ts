@@ -1,4 +1,4 @@
-import type { BaseHandler } from '../server';
+import type { BaseHandler, CommonHeaders } from '../server';
 
 type Values = string | string[];
 
@@ -15,36 +15,54 @@ function parseValue(value: Values) {
     return typeof value === 'string' ? value : value.join(',');
 }
 
+const allowCredentials = ['Access-Control-Allow-Credentials', 'true'] satisfies CommonHeaders[number];
+const allowAllOrigins = ['Access-Control-Allow-Origin', '*'] satisfies CommonHeaders[number];
+const varyOrigin = ['Vary', 'Origin'] satisfies CommonHeaders[number];
+
+const defaultCors: BaseHandler = (c) => {
+    c.headers.push(allowAllOrigins);
+    return c.next();
+};
+
 /**
  * Create a CORS action function
  */
 export function cors(options?: CORSOptions): BaseHandler {
-    const headers: Record<string, string> = {};
+    if (typeof options === 'undefined') return defaultCors;
 
-    if (typeof options === 'undefined')
-        headers['Access-Control-Allow-Headers'] = '*';
-    else {
-        // Check basic properties
-        if (typeof options.allowHeaders !== 'undefined')
-            headers['Access-Control-Allow-Headers'] = parseValue(options.allowHeaders);
-        if (typeof options.allowMethods !== 'undefined')
-            headers['Access-Control-Allow-Methods'] = parseValue(options.allowMethods);
-        if (typeof options.exposeHeaders !== 'undefined')
-            headers['Access-Control-Expose-Headers'] = parseValue(options.exposeHeaders);
-        if (typeof options.maxAge === 'number')
-            headers['Access-Control-Max-Age'] = options.maxAge + '';
-        if (options.allowCredentials === true)
-            headers['Access-Control-Allow-Credentials'] = 'true';
+    const builder: CommonHeaders = [];
 
-        // Check allow origins
-        if (typeof options.allowOrigin === 'string' && options.allowOrigin !== '*') {
-            headers['Access-Control-Allow-Origin'] = options.allowOrigin;
-            headers.Vary = 'Origin';
-        } else headers['Access-Control-Allow-Origin'] = '*';
+    // Check basic properties
+    if (typeof options.allowHeaders !== 'undefined')
+        builder.push(['Access-Control-Allow-Headers', parseValue(options.allowHeaders)]);
+    if (typeof options.allowMethods !== 'undefined')
+        builder.push(['Access-Control-Allow-Methods', parseValue(options.allowMethods)]);
+
+    if (typeof options.exposeHeaders !== 'undefined')
+        builder.push(['Access-Control-Expose-Headers', parseValue(options.exposeHeaders)]);
+    if (typeof options.maxAge === 'number')
+        builder.push(['Access-Control-Max-Age', options.maxAge + '']);
+    if (options.allowCredentials === true)
+        builder.push(allowCredentials);
+
+    // Check allow origins
+    if (typeof options.allowOrigin === 'string' && options.allowOrigin !== '*')
+        builder.push(['Access-Control-Allow-Origin', options.allowOrigin], varyOrigin);
+    else
+        builder.push(allowAllOrigins);
+
+    // Small optimization
+    if (builder.length === 1) {
+        const first = builder[0];
+        return (c) => {
+            c.headers.push(first);
+            return c.next();
+        };
     }
 
-    return (ctx) => {
-        Object.assign(ctx.headers, headers);
-        return ctx.next();
-    }
+    return (c) => {
+        c.headers.push(...builder);
+        return c.next();
+    };
 }
+

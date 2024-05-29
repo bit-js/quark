@@ -16,7 +16,7 @@ import { Quark } from '@bit-js/quark';
 
 const app = new Quark()
     .use((ctx) => {
-        ctx.headers['Content-Type'] = 'text/plain';
+        ctx.headers.push(['Content-Type', 'text/plain']);
         return ctx.next();
     })
     .get('/', (ctx) => ctx.body('Hello world'));
@@ -53,7 +53,7 @@ import { Quark } from 'npm:@bit-js/quark';
 
 const app = new Quark()
     .use((ctx) => {
-        ctx.headers['Content-Type'] = 'text/plain';
+        ctx.headers.push(['Content-Type', 'text/plain']);
         return ctx.next();
     })
     .get('/', (ctx) => ctx.body('Hello world'));

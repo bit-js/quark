@@ -1,5 +1,5 @@
 import type { Params } from '@bit-js/blitz';
-import type { BasicResponse, JsonResponse, NullableBody } from '../utils/response';
+import { jsonPair, type BasicResponse, type JsonResponse, type NullableBody } from '../utils/response';
 import type { CommonHeaders, CommonResponseInit } from './response';
 
 export class Context<Params> implements CommonResponseInit {
@@ -21,7 +21,7 @@ export class Context<Params> implements CommonResponseInit {
      */
     constructor(req: Request) {
         this.req = req;
-        this.headers = {};
+        this.headers = [];
         this.handlerIdx = -1;
 
         // Path parsing
@@ -46,7 +46,7 @@ export class Context<Params> implements CommonResponseInit {
      * Send response as JSON
      */
     json<const T>(body: T): JsonResponse<T> {
-        this.headers['Content-Type'] = 'application/json';
+        this.headers.push(jsonPair);
         return new Response(JSON.stringify(body), this as ResponseInit);
     }
 
@@ -54,7 +54,7 @@ export class Context<Params> implements CommonResponseInit {
      * Send HTML response
      */
     html<const T extends NullableBody>(body: T): BasicResponse<T> {
-        this.headers['Content-Type'] = 'text/html';
+        this.headers.push(jsonPair);
         return new Response(body, this as ResponseInit) as any;
     }
 
@@ -62,7 +62,7 @@ export class Context<Params> implements CommonResponseInit {
      * Send HTML response
      */
     redirect(location: string, status: 301 | 302 | 307 | 308): Response {
-        this.headers.Location = location;
+        this.headers.push(['Location', location]);
         this.status = status;
         return new Response(null, this as ResponseInit);
     }
