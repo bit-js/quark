@@ -17,10 +17,6 @@ type HandlerRegisters<T extends RoutesRecord, State> = {
     [Method in RequestMethod | 'any']: Register<Method, T, State>;
 }
 
-declare global {
-    interface Env { }
-}
-
 export class Quark<Routes extends RoutesRecord = [], State = {}> {
     readonly middlewares: BaseHandler<State>[];
     readonly routes: Routes;

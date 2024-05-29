@@ -75,6 +75,10 @@ export class Context<Params> implements CommonResponseInit {
     }
 };
 
+declare global {
+    interface Env { }
+}
+
 export interface Context<Params> {
     readonly env: Env;
     readonly execution: ExecutionContext;
