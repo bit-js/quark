@@ -82,6 +82,7 @@ declare global {
 export interface Context<Params> {
     readonly env: Env;
     readonly execution: ExecutionContext;
+    readonly event: FetchEvent;
 }
 
 export type BaseContext = Context<any>;

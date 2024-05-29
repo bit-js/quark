@@ -53,6 +53,12 @@ declare global {
 }
 ```
 
+To use `Quark` with service workers:
+
+```ts
+addEventListener("fetch", app.handleEvent);
+```
+
 ### Deno
 
 An example `Hello world` app:

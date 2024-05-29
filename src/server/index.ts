@@ -1,8 +1,9 @@
 import { AsyncFunction } from '../utils/defaultOptions';
 import type { RequestMethod } from '../utils/methods';
 import type { AwaitedReturn } from '../utils/types';
-import type { BaseHandler, Handler } from './types/handler';
+import { Context, type BaseHandler, type Handler } from './types/handler';
 import Router from './utils/router';
+import { isCloudflare } from './utils/runtime';
 
 export type Route = [method: string, path: string, handlers: BaseHandler[]];
 export type RoutesRecord = Route[];
@@ -58,8 +59,6 @@ export class Quark<Routes extends RoutesRecord = [], State = {}> {
         );
     }
 
-    #fetch: any;
-
     /**
      * Build the fetch function
      */
@@ -77,14 +76,45 @@ export class Quark<Routes extends RoutesRecord = [], State = {}> {
                 router.on(method, route[1], route[2]);
         }
 
-        return this.#fetch = router.build();
+        return router.build();
     }
 
+    #fetch!: (req: Request, env: any, ctx: ExecutionContext) => any;
     /**
      * Get the fetch function
      */
-    get fetch(): (req: Request) => any {
-        return this.#fetch ??= this.build();
+    get fetch() {
+        if (this.#fetch !== undefined) return this.#fetch;
+
+        const fn = this.build();
+        return this.#fetch = isCloudflare
+            ? (req, env, ctx) => {
+                const c = new Context(req);
+                // @ts-ignore
+                c.env = env;
+                // @ts-ignore
+                c.execution = ctx;
+
+                return fn(c);
+            }
+            : (req) => fn(new Context(req));
+    }
+
+    #handleEvent!: (event: FetchEvent) => any;
+    /**
+     * Get the fetch handler function
+     */
+    get handleEvent() {
+        if (this.#handleEvent !== undefined) return this.#handleEvent;
+
+        const fn = this.build();
+        return this.#handleEvent = (event) => {
+            const c = new Context(event.request);
+            // @ts-ignore
+            c.event = event;
+
+            event.respondWith(fn(c));
+        }
     }
 
     /**
