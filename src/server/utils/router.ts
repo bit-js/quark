@@ -1,7 +1,6 @@
 import { internal } from '@bit-js/blitz';
 
 import type { BaseContext, BaseHandler } from '../types/handler';
-import { Context } from '../types/handler';
 
 type Result = internal.Edge<BaseHandler[]>;
 
