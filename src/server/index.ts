@@ -95,9 +95,9 @@ export class Quark<Routes extends RoutesRecord = [], State = {}> {
                 // @ts-ignore
                 c.execution = ctx;
 
-                return fn(c);
+                return fn(c, req.method);
             }
-            : (req) => fn(new Context(req));
+            : (req) => fn(new Context(req), req.method);
     }
 
     #handleEvent!: (event: FetchEvent) => any;
@@ -109,11 +109,12 @@ export class Quark<Routes extends RoutesRecord = [], State = {}> {
 
         const fn = this.build();
         return this.#handleEvent = (event) => {
-            const c = new Context(event.request);
+            const { request } = event;
+            const c = new Context(request);
             // @ts-ignore
             c.event = event;
 
-            event.respondWith(fn(c));
+            event.respondWith(fn(c, request.method));
         }
     }
 

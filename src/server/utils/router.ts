@@ -35,7 +35,7 @@ export default class Router {
     /**
      * Build the request handler
      */
-    build(): (ctx: BaseContext) => any {
+    build(): (ctx: BaseContext, method: string) => any {
         const { methodRouter, fallbackRouter } = this;
         const fallback = typeof fallbackRouter === 'undefined'
             ? noop
@@ -44,9 +44,9 @@ export default class Router {
         // Use fallbackRouter matcher as fallback if it exist
         // Call the fallback directly if no method router exists
         if (typeof methodRouter === 'undefined') {
-            return (ctx) => {
+            return (ctx, method) => {
                 const res = fallback(ctx);
-                if (res === null) return new Response(`Cannot ${ctx.req.method} ${ctx.path}`);
+                if (res === null) return new Response(`Cannot ${method} ${ctx.path}`);
 
                 ctx.handlers = res;
                 return ctx.next();
@@ -54,13 +54,11 @@ export default class Router {
         }
 
         // Compile method matchers 
-        const methodMatcher = new MethodMatcher();
-        for (const method in methodRouter)
-            methodMatcher[method] = methodRouter[method].buildMatcher(options, null);
+        const methodMatcher = new MethodMatcher(methodRouter);
 
-        return (ctx) => {
-            const res = (methodMatcher[ctx.req.method] ?? fallback)(ctx);
-            if (res === null) return new Response(`Cannot ${ctx.req.method} ${ctx.path}`);
+        return (ctx, method) => {
+            const res = (methodMatcher[method] ?? fallback)(ctx);
+            if (res === null) return new Response(`Cannot ${method} ${ctx.path}`);
 
             ctx.handlers = res;
             return ctx.next();
@@ -78,6 +76,11 @@ class MethodMatcher {
     OPTIONS!: Matcher;
     TRACE!: Matcher;
     HEAD!: Matcher;
+
+    constructor(router: Record<string, Result>) {
+        for (const method in router)
+            this[method] = router[method].buildMatcher(options, null);
+    }
 }
 
 interface MethodMatcher extends Record<string, Matcher> { };
